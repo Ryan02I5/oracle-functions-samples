@@ -29,6 +29,7 @@ This repository provides examples demonstrating how to use Oracle Functions.
 | Run a SQL statement against Autonomous DB using ORDS | [sample](./samples/oci-adb-ords-runsql-python) | 
 | Run a SQL statement against Autonomous DB using DB Client |[sample](./samples/oci-adb-client-runsql-python)|| 
 | Publish a notification using ONS                     |[sample](./samples/oci-ons-publish-python)|
+| Relay OCI Notifications to ntfy                     |[sample](./samples/oci-notifications-ntfy-relay-python)|
 | Send an email using Email Delivery Service           |[sample](./samples/oci-email-send-python)|
 | Decrypt cipher using Vault keys                      |[sample](./samples/oci-vault-decrypt-python)
 | Get a secret from Vault                              |[sample](./samples/oci-vault-get-secret-python)|
