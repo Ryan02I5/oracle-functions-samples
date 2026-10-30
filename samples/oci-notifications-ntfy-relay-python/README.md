@@ -121,10 +121,17 @@ It attempts to surface:
 
 - title / alarm display name
 - severity
-- lifecycle state
+- lifecycle state (for alarms, the top-level `type`: `FIRING_TO_OK` is shown as
+  a recovery and `RESET` stays a warning)
 - region
 - timestamp
-- summary/body
+- summary/body (for alarms, the plain-text `body` or `alarmSummary`)
+- the alarm URL from `alarmMetaData`
+
+Alarm fields follow the
+[Alarm Message Format](https://docs.oracle.com/en-us/iaas/Content/Monitoring/alarm-message-format.htm)
+reference. The `ONS_OPTIMIZED` message format applies only to Email
+subscriptions, so a Functions subscription receives the raw alarm JSON.
 
 If the payload contains non-Latin-1 title text, the message body preserves the
 full Unicode value while the HTTP `Title` header is downgraded to a header-safe

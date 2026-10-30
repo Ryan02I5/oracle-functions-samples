@@ -79,6 +79,14 @@ def _header_safe_value(value: str, fallback: str) -> str:
         return fallback
 
 
+def _first_dict(items: Any) -> dict[str, Any]:
+    if isinstance(items, list):
+        for item in items:
+            if isinstance(item, dict):
+                return item
+    return {}
+
+
 def _format_message(raw_text: str) -> tuple[str, str, str, str]:
     payload, body = _parse_payload(raw_text)
 
@@ -101,11 +109,20 @@ def _format_message(raw_text: str) -> tuple[str, str, str, str]:
         body.get("eventTime"),
         payload.get("timestamp"),
     )
+    # Alarm messages follow Oracle's Alarm Message Format: the state is the
+    # top-level "type" (OK_TO_FIRING, FIRING_TO_OK, REPEAT, RESET), "body" is
+    # plain text and "alarmMetaData" holds the alarm URL and summary.
+    # https://docs.oracle.com/en-us/iaas/Content/Monitoring/alarm-message-format.htm
+    alarm_metadata = _first_dict(payload.get("alarmMetaData"))
+    plain_body = payload.get("body") if isinstance(payload.get("body"), str) and not body else ""
     summary = _pick(
         body.get("body"),
         body.get("summary"),
         body.get("message"),
+        plain_body,
+        alarm_metadata.get("alarmSummary"),
     )
+    alarm_url = _pick(alarm_metadata.get("alarmUrl"))
     header_title = _header_safe_value(title, "OCI notification")
 
     lines = [f"title: {title}"]
@@ -123,10 +140,16 @@ def _format_message(raw_text: str) -> tuple[str, str, str, str]:
     else:
         lines.append("")
         lines.append(raw_text[:4000])
+    if alarm_url:
+        lines.append("")
+        lines.append(f"alarm_url: {alarm_url}")
 
     tag = "warning"
-    if lifecycle.upper() == "OK":
+    if lifecycle.upper() in {"OK", "FIRING_TO_OK"}:
         tag = "white_check_mark"
+    elif lifecycle.upper() == "RESET":
+        # RESET means the firing metric stream went missing; check the resource.
+        tag = "warning"
     elif severity.upper() in {"CRITICAL", "ERROR"}:
         tag = "rotating_light"
 
